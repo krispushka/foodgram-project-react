@@ -1,9 +1,11 @@
+from django.forms import ValidationError
 from django.shortcuts import get_object_or_404
 from djoser.serializers import UserCreateSerializer
 from drf_extra_fields.fields import Base64ImageField
 from recipes.models import Ingredient, IngredientRecipe, Recipe, Tag
 from rest_framework import serializers
 from users.models import Follow, User
+from rest_framework.validators import UniqueTogetherValidator
 
 
 class UserSerializer(UserCreateSerializer):
@@ -181,3 +183,41 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         self.add_ingredients(recipe, ingredients)
         recipe.tags.set(tags)
         return recipe
+
+
+class UserSubscribeSerializer(serializers.ModelSerializer):
+    is_subscribed = serializers.SerializerMethodField()
+    recipes = ShortRecipeInfoSerializer(many=True)
+    recipes_count = serializers.ReadOnlyField(source='following.recipes.count')
+
+    class Meta:
+        model = User
+        fields = ('email', 'id', 'username', 'first_name', 'last_name',
+                  'recipes_count', 'is_subscribed', 'recipes',)
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Follow.objects.all(),
+                fields=("user", "following"),
+                message="Вы уже подписаны на этого автора",
+            )
+        ]
+
+    def validate(self, data):
+        request = self.context.get('request')
+        following = self.instance
+        if request.user == following:
+            raise ValidationError(
+                'Вы не можете подписаться на самого себя.'
+            )
+        return data
+
+    def get_is_subscribed(self, data):
+        request = self.context.get('request')
+        if request is None or request.user.is_anonymous:
+            return False
+        return Follow.objects.filter(
+            user=request.user, following=data
+        ).exists()
+
+    def get_recipes_count(self, data):
+        return Recipe.objects.filter(author=data.id).count()
