@@ -1,18 +1,20 @@
-from api.serializers import (RecipeCreateSerializer,
-                             RecipeReadSerializer,
-                             ShortRecipeInfoSerializer,
-                             TagSerializer,
-                             UserSubscribeSerializer
-                             )
+from api.serializers import (
+    RecipeCreateSerializer,
+    RecipeReadSerializer,
+    ShortRecipeInfoSerializer,
+    TagSerializer,
+    UserSubscribeSerializer,
+)
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
 from api.filters import RecipeFilter
-from recipes.models import (Favorite,
-                            Ingredient,
-                            Recipe,
-                            ShoppingCard,
-                            Tag,
-                            )
+from recipes.models import (
+    Favorite,
+    Ingredient,
+    Recipe,
+    ShoppingCard,
+    Tag,
+)
 from users.models import User, Follow
 from rest_framework import status, viewsets, filters
 from rest_framework.decorators import action
@@ -24,14 +26,14 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.permissions import (
     IsAuthenticated,
     IsAuthenticatedOrReadOnly,
-    AllowAny
+    AllowAny,
 )
 
 
 class UserViewSet(UserViewSet):
     queryset = User.objects.all()
     pagination_class = CustomPagination
-    permission_classes = (AllowAny, )
+    permission_classes = (AllowAny,)
 
     @action(
         detail=False,
@@ -50,20 +52,20 @@ class UserViewSet(UserViewSet):
 
     @action(
         detail=True,
-        methods=['POST', 'DELETE'],
+        methods=["POST", "DELETE"],
         permission_classes=[IsAuthenticated],
     )
     def subscribe(self, request, id):
         following = get_object_or_404(User, id=id)
         user = request.user
-        if request.method == 'DELETE':
+        if request.method == "DELETE":
             Follow.objects.filter(user=user, following=following).delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
-        if request.method == 'POST':
+        if request.method == "POST":
             Follow.objects.get_or_create(user=user, following=following)
             serializer = UserSubscribeSerializer(
                 following,
-                context={'request': request},
+                context={"request": request},
             )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -84,59 +86,60 @@ class IngredientViewSet(viewsets.ModelViewSet):
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
-    filter_backends = (DjangoFilterBackend, )
+    filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
 
     def get_serializer_class(self):
-        if self.request.method in ('POST', 'PUT', 'PATCH', 'DELETE'):
+        if self.request.method in ("POST", "PUT", "PATCH", "DELETE"):
             return RecipeCreateSerializer
         return RecipeReadSerializer
 
     @action(
         detail=True,
-        methods=['POST', 'DELETE'],
+        methods=["POST", "DELETE"],
         permission_classes=[IsAuthenticated]
     )
     def favorite(self, request, pk):
         user = request.user
         recipe = get_object_or_404(Recipe, id=pk)
         serializer = ShortRecipeInfoSerializer(recipe)
-        if request.method == 'POST':
+        if request.method == "POST":
             Favorite.objects.get_or_create(user=user, recipe=recipe)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        if request.method == 'DELETE':
+        if request.method == "DELETE":
             Favorite.objects.filter(user=user, recipe=recipe).delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
         detail=True,
-        methods=['POST', 'DELETE'],
+        methods=["POST", "DELETE"],
         permission_classes=[IsAuthenticated]
     )
     def shopping_cart(self, request, pk):
         user = request.user
         recipe = get_object_or_404(Recipe, id=pk)
         serializer = ShortRecipeInfoSerializer(recipe)
-        if request.method == 'POST':
+        if request.method == "POST":
             ShoppingCard.objects.get_or_create(user=user, recipe=recipe)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        if request.method == 'DELETE':
+        if request.method == "DELETE":
             ShoppingCard.objects.filter(user=user, recipe=recipe).delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
         detail=True,
-        methods=['GET'],
-        permission_classes=[IsAuthenticated]
-    )
+        methods=["GET"],
+        permission_classes=[IsAuthenticated])
     def download_shopping_cart(self, request):
         user = request.user
         ingredients = (
-            ShoppingCard.objects
-            .filter(user=user)
-            .values('recipe__recipes_ingredient__ingredient__name',
-                    'recipe__recipes_ingredient__ingredient__measurement_unit')
-            .annotate(amount=Sum('recipe__recipes_ingredient__amount')))
+            ShoppingCard.objects.filter(user=user)
+            .values(
+                "recipe__recipes_ingredient__ingredient__name",
+                "recipe__recipes_ingredient__ingredient__measurement_unit",
+            )
+            .annotate(amount=Sum("recipe__recipes_ingredient__amount"))
+        )
 
         shopping_list = []
 
@@ -146,11 +149,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 f'({ingredient["recipe__recipes_ingredient__ingredient__measurement_unit"]}) - '
                 f'{ingredient["amount"]}'
             )
-        shopping_list_str = '\n'.join(shopping_list)
+        shopping_list_str = "\n".join(shopping_list)
         return HttpResponse(
             shopping_list_str,
             {
                 "Content-Type": "text/plain",
-                "Content-Disposition": "attachment; filename='shopping_list.txt'",
+                "Content-Disposition": "attachment; filename='shop_list.txt'",
             },
         )
