@@ -14,6 +14,7 @@ from recipes.models import (
     Recipe,
     ShoppingCard,
     Tag,
+    IngredientRecipe
 )
 from users.models import User, Follow
 from rest_framework import status, viewsets, filters
@@ -136,20 +137,20 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def download_shopping_cart(self, request):
         user = request.user
         ingredients = (
-            ShoppingCard.objects.filter(user=user)
+            IngredientRecipe.objects.filter(recipe__shopping_list__user=user)
             .values(
-                "recipe__recipes_ingredient__ingredient__name",
-                "recipe__recipes_ingredient__ingredient__measurement_unit",
+                "ingredient__name",
+                "ingredient__measurement_unit",
             )
-            .annotate(amount=Sum("recipe__recipes_ingredient__amount"))
+            .annotate(amount=Sum("amount"))
         )
 
         shopping_list = []
 
         for ingredient in ingredients:
             shopping_list.append(
-                f'{ingredient["recipe__recipes_ingredient__ingredient__name"]}'
-                f'({ingredient["recipe__recipes_ingredient__ingredient__measurement_unit"]}) - '
+                f'{ingredient["ingredient__name"]}'
+                f'({ingredient["ingredient__measurement_unit"]}) - '
                 f'{ingredient["amount"]}'
             )
         shopping_list_str = "\n".join(shopping_list)
