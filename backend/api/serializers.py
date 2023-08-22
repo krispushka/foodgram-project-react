@@ -2,15 +2,11 @@ from django.forms import ValidationError
 from django.shortcuts import get_object_or_404
 from djoser.serializers import UserCreateSerializer
 from drf_extra_fields.fields import Base64ImageField
-from recipes.models import (Ingredient,
-                            IngredientRecipe,
-                            Recipe,
-                            Tag,
-                            Favorite,
-                            ShoppingCard)
+from recipes.models import (Favorite, Ingredient, IngredientRecipe, Recipe,
+                            ShoppingCard, Tag)
 from rest_framework import serializers
-from users.models import Follow, User
 from rest_framework.validators import UniqueTogetherValidator
+from users.models import Follow, User
 
 
 class UserSerializer(UserCreateSerializer):

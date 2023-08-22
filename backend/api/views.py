@@ -1,35 +1,22 @@
-from api.serializers import (
-    RecipeCreateSerializer,
-    RecipeReadSerializer,
-    ShortRecipeInfoSerializer,
-    TagSerializer,
-    UserSubscribeSerializer,
-)
-from django.shortcuts import get_object_or_404
-from djoser.views import UserViewSet
 from api.filters import RecipeFilter
-from recipes.models import (
-    Favorite,
-    Ingredient,
-    Recipe,
-    ShoppingCard,
-    Tag,
-    IngredientRecipe
-)
-from users.models import User, Follow
-from rest_framework import status, viewsets, filters
-from rest_framework.decorators import action
-from rest_framework.response import Response
+from api.pagination import CustomPagination
+from api.permissions import IsAuthorOrOnlyRead
+from api.serializers import (RecipeCreateSerializer, RecipeReadSerializer,
+                             ShortRecipeInfoSerializer, TagSerializer,
+                             UserSubscribeSerializer)
 from django.db.models import Sum
 from django.http import HttpResponse
-from api.pagination import CustomPagination
+from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.permissions import (
-    IsAuthenticated,
-    IsAuthenticatedOrReadOnly,
-    AllowAny,
-)
-from api.permissions import IsAuthorOrOnlyRead
+from djoser.views import UserViewSet
+from recipes.models import (Favorite, Ingredient, IngredientRecipe, Recipe,
+                            ShoppingCard, Tag)
+from rest_framework import filters, status, viewsets
+from rest_framework.decorators import action
+from rest_framework.permissions import (AllowAny, IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
+from rest_framework.response import Response
+from users.models import Follow, User
 
 
 class UserViewSet(UserViewSet):
@@ -137,7 +124,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def download_shopping_cart(self, request):
         user = request.user
         ingredients = (
-            IngredientRecipe.objects.filter(recipe__shopping_list__user=user)
+            IngredientRecipe.objects.filter(user=user)
             .values(
                 "ingredient__name",
                 "ingredient__measurement_unit",
@@ -149,7 +136,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         for ingredient in ingredients:
             shopping_list.append(
-                f'{ingredient["ingredient__name"]}'
+                f'{ingredient["ringredient__name"]}'
                 f'({ingredient["ingredient__measurement_unit"]}) - '
                 f'{ingredient["amount"]}'
             )
