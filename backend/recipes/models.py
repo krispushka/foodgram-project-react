@@ -2,11 +2,12 @@ from colorfield.fields import ColorField
 from django.core.validators import MinValueValidator
 from django.db import models
 from users.models import User
+from foodgram.settings import MAX_LENGHT
 
 
 class Tag(models.Model):
     name = models.CharField(
-        max_length=200,
+        max_length=MAX_LENGHT,
         verbose_name="Тег",
         unique=True,
         blank=True,
@@ -18,24 +19,28 @@ class Tag(models.Model):
         blank=True,
         unique=True,
     )
-    slug = models.SlugField(max_length=200, unique=True, blank=True)
+    slug = models.SlugField(
+        max_length=MAX_LENGHT,
+        unique=True,
+        blank=True
+    )
 
     def __str__(self):
         return self.name
 
     class Meta:
-        verbose_name = "Тэг"
-        verbose_name_plural = "Тэги"
+        verbose_name = "Тег"
+        verbose_name_plural = "Теги"
 
 
 class Ingredient(models.Model):
     name = models.CharField(
-        max_length=200,
+        max_length=MAX_LENGHT,
         verbose_name="Название",
         blank=True,
     )
     measurement_unit = models.CharField(
-        max_length=200,
+        max_length=MAX_LENGHT,
         verbose_name="Еденица измерения",
         blank=True,
     )
@@ -45,7 +50,7 @@ class Ingredient(models.Model):
 
     class Meta:
         verbose_name = "Ингредиент"
-        verbose_name_plural = "Ингредиен"
+        verbose_name_plural = "Ингредиенты"
 
 
 class Recipe(models.Model):
@@ -57,7 +62,7 @@ class Recipe(models.Model):
         blank=True,
     )
     name = models.CharField(
-        max_length=200,
+        max_length=MAX_LENGHT,
         verbose_name="Название",
         blank=True,
     )
@@ -112,7 +117,10 @@ class IngredientRecipe(models.Model):
     amount = models.PositiveSmallIntegerField(
         verbose_name="Количество",
         blank=True,
-        validators=[MinValueValidator(1, message="Количество не может быть меньше 1")],
+        validators=[MinValueValidator(
+            1,
+            message="Количество не может быть меньше 1"
+        )],
     )
 
     def __str__(self):

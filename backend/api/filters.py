@@ -9,7 +9,9 @@ from recipes.models import Recipe, Tag
 
 class RecipeFilter(FilterSet):
     tags = ModelMultipleChoiceFilter(
-        queryset=Tag.objects.all(), field_name="tags__slug", to_field_name="slug"
+        queryset=Tag.objects.all(),
+        field_name="tags__slug",
+        to_field_name="slug"
     )
     is_favorited = BooleanFilter(method="filter_is_favorited")
     is_in_shopping_cart = BooleanFilter(method="filter_shopping_cart")

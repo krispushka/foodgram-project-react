@@ -2,7 +2,12 @@ from django.forms import ValidationError
 from django.shortcuts import get_object_or_404
 from djoser.serializers import UserCreateSerializer
 from drf_extra_fields.fields import Base64ImageField
-from recipes.models import Ingredient, IngredientRecipe, Recipe, Tag
+from recipes.models import (Ingredient,
+                            IngredientRecipe,
+                            Recipe,
+                            Tag,
+                            Favorite,
+                            ShoppingCard)
 from rest_framework import serializers
 from users.models import Follow, User
 from rest_framework.validators import UniqueTogetherValidator
@@ -66,7 +71,9 @@ class IngredientSerializer(serializers.ModelSerializer):
 class IngredientRecipeSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField(source="ingredient.id")
     name = serializers.ReadOnlyField(source="ingredient.name")
-    measurement_unit = serializers.ReadOnlyField(source="ingredient.measurement_unit")
+    measurement_unit = serializers.ReadOnlyField(
+        source="ingredient.measurement_unit"
+    )
 
     class Meta:
         model = IngredientRecipe
@@ -121,16 +128,18 @@ class RecipeReadSerializer(serializers.ModelSerializer):
         )
 
     def get_is_favorited(self, obj):
-        user = self.context.get("request").user
-        if user.is_anonymous:
+        request = self.context.get("request")
+        if request.user.is_anonymous:
             return False
-        return obj.favorite.filter(user=user).exists()
+        return Favorite.objects.filter(user=request.user, recipe=obj).exists()
 
     def get_is_in_shopping_cart(self, obj):
-        user = self.context.get("request").user
-        if user.is_anonymous:
+        request = self.context.get("request")
+        if request.user.is_anonymous:
             return False
-        return obj.shopping_cart.filter(user=user).exists()
+        return ShoppingCard.objects.filter(
+            user=request.user,
+            recipe=obj).exists()
 
 
 class RecipeCreateSerializer(serializers.ModelSerializer):
@@ -219,7 +228,10 @@ class UserSubscribeSerializer(serializers.ModelSerializer):
         request = self.context.get("request")
         if request is None or request.user.is_anonymous:
             return False
-        return Follow.objects.filter(user=request.user, following=data).exists()
+        return Follow.objects.filter(
+            user=request.user,
+            following=data
+        ).exists()
 
     def get_recipes_count(self, data):
         return Recipe.objects.filter(author=data.id).count()

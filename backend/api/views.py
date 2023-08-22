@@ -28,6 +28,7 @@ from rest_framework.permissions import (
     IsAuthenticatedOrReadOnly,
     AllowAny,
 )
+from api.permissions import IsAuthorOrOnlyRead
 
 
 class UserViewSet(UserViewSet):
@@ -41,7 +42,8 @@ class UserViewSet(UserViewSet):
         permission_classes=[IsAuthenticated],
     )
     def subscriptions(self, request):
-        queryset = Follow.objects.filter(user=request.user)
+        user = request.user
+        queryset = User.objects.filter(following__user=user)
         page = self.paginate_queryset(queryset)
         serializer = UserSubscribeSerializer(
             page,
@@ -88,6 +90,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
+    permission_classes = (IsAuthorOrOnlyRead, )
 
     def get_serializer_class(self):
         if self.request.method in ("POST", "PUT", "PATCH", "DELETE"):
