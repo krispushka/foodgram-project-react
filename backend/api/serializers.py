@@ -1,15 +1,19 @@
+from django.db import transaction
 from django.forms import ValidationError
 from django.shortcuts import get_object_or_404
-from djoser.serializers import UserCreateSerializer
+from djoser.serializers import (
+    UserCreateSerializer as DjoserUserCreateSerializer)
+from djoser.serializers import UserSerializer as DjoserUserSerialiser
 from drf_extra_fields.fields import Base64ImageField
-from recipes.models import (Favorite, Ingredient, IngredientRecipe, Recipe,
-                            ShoppingCard, Tag)
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
+
+from recipes.models import (Favorite, Ingredient, IngredientRecipe, Recipe,
+                            ShoppingCard, Tag)
 from users.models import Follow, User
 
 
-class UserSerializer(UserCreateSerializer):
+class UserSerializer(DjoserUserSerialiser):
     is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
@@ -30,7 +34,7 @@ class UserSerializer(UserCreateSerializer):
         return Follow.objects.filter(user=request.user, following=obj).exists()
 
 
-class UserCreateSerializer(UserCreateSerializer):
+class UserCreateSerializer(DjoserUserCreateSerializer):
     class Meta:
         model = User
         fields = (
@@ -104,8 +108,14 @@ class RecipeReadSerializer(serializers.ModelSerializer):
     ingredients = IngredientRecipeSerializer(
         many=True, read_only=True, source="ingredientrecipe_set"
     )
-    is_favorited = serializers.SerializerMethodField()
-    is_in_shopping_cart = serializers.SerializerMethodField()
+    is_favorited = serializers.BooleanField(
+        read_only=True,
+        default=False
+    )
+    is_in_shopping_cart = serializers.BooleanField(
+        read_only=True,
+        default=False
+    )
     image = Base64ImageField()
 
     class Meta:
@@ -169,6 +179,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
                 amount=ingredient["amount"],
             )
 
+    @transaction.atomic
     def create(self, validated_data):
         request = self.context.get("request")
         author = request.user
@@ -179,6 +190,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         self.add_ingredients(recipe, ingredients)
         return recipe
 
+    @transaction.atomic
     def update(self, recipe, validated_data):
         ingredients = validated_data.pop("ingredients")
         tags = validated_data.pop("tags")
