@@ -21,6 +21,21 @@ from api.services import get_shopping_list
 from users.models import Follow, User
 
 
+class GetObjectMixin:
+    def func_to_add(self, request, pk, Model):
+        user = request.user
+        recipe = get_object_or_404(Recipe, id=pk)
+        serializer = ShortRecipeInfoSerializer(recipe)
+        Model.objects.get_or_create(user=user, recipe=recipe)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def func_to_delete(self, request, pk, Model):
+        user = request.user
+        recipe = get_object_or_404(Recipe, id=pk)
+        Model.objects.filter(user=user, recipe=recipe).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 class UserViewSet(UserViewSet):
     queryset = User.objects.all()
     pagination_class = CustomPagination
@@ -79,7 +94,7 @@ class IngredientViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,)
 
 
-class RecipeViewSet(viewsets.ModelViewSet):
+class RecipeViewSet(GetObjectMixin, viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
     permission_classes = (IsAuthorOrReadOnly, )
@@ -103,19 +118,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if self.request.method in ("POST", "PUT", "PATCH", "DELETE"):
             return RecipeCreateSerializer
         return RecipeReadSerializer
-
-    def func_to_add(self, request, pk, Model):
-        user = request.user
-        recipe = get_object_or_404(Recipe, id=pk)
-        serializer = ShortRecipeInfoSerializer(recipe)
-        Model.objects.get_or_create(user=user, recipe=recipe)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    def func_to_delete(self, request, pk, Model):
-        user = request.user
-        recipe = get_object_or_404(Recipe, id=pk)
-        Model.objects.filter(user=user, recipe=recipe).delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
         detail=True,
