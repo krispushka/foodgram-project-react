@@ -8,8 +8,7 @@ from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
-from recipes.models import (Favorite, Ingredient, IngredientRecipe, Recipe,
-                            ShoppingCard, Tag)
+from recipes.models import (Ingredient, IngredientRecipe, Recipe, Tag)
 from users.models import Follow, User
 
 
@@ -133,20 +132,6 @@ class RecipeReadSerializer(serializers.ModelSerializer):
             "cooking_time",
         )
 
-    def get_is_favorited(self, obj):
-        request = self.context.get("request")
-        if request.user.is_anonymous:
-            return False
-        return Favorite.objects.filter(user=request.user, recipe=obj).exists()
-
-    def get_is_in_shopping_cart(self, obj):
-        request = self.context.get("request")
-        if request.user.is_anonymous:
-            return False
-        return ShoppingCard.objects.filter(
-            user=request.user,
-            recipe=obj).exists()
-
 
 class RecipeCreateSerializer(serializers.ModelSerializer):
     ingredients = IngredientRecipeCreateSerializer(many=True)
@@ -171,14 +156,6 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             "cooking_time",
         )
 
-    def add_ingredients(self, recipe, ingredients):
-        for ingredient in ingredients:
-            ingredient, status = IngredientRecipe.objects.get_or_create(
-                recipe=recipe,
-                ingredient=get_object_or_404(Ingredient, id=ingredient["id"]),
-                amount=ingredient["amount"],
-            )
-
     @transaction.atomic
     def create(self, validated_data):
         request = self.context.get("request")
@@ -186,6 +163,12 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         ingredients = validated_data.pop("ingredients")
         tags = validated_data.pop("tags")
         recipe = Recipe.objects.create(author=author, **validated_data)
+        for ingredient in ingredients:
+            IngredientRecipe.objects.get_or_create(
+                recipe=recipe,
+                ingredient=get_object_or_404(Ingredient, id=ingredient["id"]),
+                amount=ingredient["amount"],
+            )
         recipe.tags.set(tags)
         self.add_ingredients(recipe, ingredients)
         return recipe

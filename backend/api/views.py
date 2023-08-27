@@ -101,7 +101,11 @@ class RecipeViewSet(GetObjectMixin, viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        queryset = Recipe.objects.all()
+        queryset = (
+            Recipe.objects
+            .select_related('author')
+            .prefetch_related('tags')
+        )
         if user.is_authenticated:
             favorite = Favorite.objects.filter(
                 user=user, recipe=OuterRef('id'))
