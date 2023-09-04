@@ -164,13 +164,12 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         tags = validated_data.pop("tags")
         recipe = Recipe.objects.create(author=author, **validated_data)
         for ingredient in ingredients:
-            IngredientRecipe.objects.get_or_create(
+            IngredientRecipe.objects.create(
                 recipe=recipe,
                 ingredient=get_object_or_404(Ingredient, id=ingredient["id"]),
                 amount=ingredient["amount"],
             )
         recipe.tags.set(tags)
-        self.add_ingredients(recipe, ingredients)
         return recipe
 
     @transaction.atomic
@@ -178,9 +177,14 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         ingredients = validated_data.pop("ingredients")
         tags = validated_data.pop("tags")
         IngredientRecipe.objects.filter(recipe=recipe).delete()
-        self.add_ingredients(recipe, ingredients)
+        for ingredient in ingredients:
+            IngredientRecipe.objects.create(
+                recipe=recipe,
+                ingredient=get_object_or_404(Ingredient, id=ingredient["id"]),
+                amount=ingredient["amount"],
+            )
         recipe.tags.set(tags)
-        return recipe
+        return super().update(recipe, validated_data)
 
 
 class UserSubscribeSerializer(serializers.ModelSerializer):

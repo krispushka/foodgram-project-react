@@ -17,9 +17,8 @@ def get_shopping_list(user):
 
     for ingredient in ingredients:
         shopping_list.append(
-            f'{ingredient["ringredient__name"]}'
+            f'{ingredient["ingredient__name"]}'
             f'({ingredient["ingredient__measurement_unit"]}) - '
-            f'{ingredient["amount"]}'
+            f'{ingredient["amount"]}\n'
         )
-    shopping_list_str = "\n".join(shopping_list)
-    return shopping_list_str
+    return shopping_list

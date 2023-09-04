@@ -156,11 +156,13 @@ class ShoppingCard(models.Model):
         User,
         on_delete=models.CASCADE,
         verbose_name="Пользователь",
+	related_name="carts"
     )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
         verbose_name="Рецепт",
+	related_name='shopping_list'
     )
 
     def __str__(self):

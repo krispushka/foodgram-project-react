@@ -84,6 +84,7 @@ class TagViewSet(viewsets.ModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)
+    pagination_class = None
 
 
 class IngredientViewSet(viewsets.ModelViewSet):
@@ -92,12 +93,14 @@ class IngredientViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.SearchFilter,)
     search_fields = ("^name",)
     permission_classes = (IsAuthenticatedOrReadOnly,)
+    pagination_class = None
 
 
 class RecipeViewSet(GetObjectMixin, viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
     permission_classes = (IsAuthorOrReadOnly, )
+    pagination_class = CustomPagination
 
     def get_queryset(self):
         user = self.request.user
@@ -148,7 +151,7 @@ class RecipeViewSet(GetObjectMixin, viewsets.ModelViewSet):
         return self.func_to_delete(request, pk, ShoppingCard)
 
     @action(
-        detail=True,
+        detail=False,
         methods=["GET"],
         permission_classes=[IsAuthenticated])
     def download_shopping_cart(self, request):
