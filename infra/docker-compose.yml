@@ -1,33 +1,35 @@
 version: '3.3'
 
 volumes:
-  pg_data_production:
-  static_volume:
-  media_production:
+  pg_data_fg:
+  static_fg:
+  media_foodgram:
 
 services:
 
   dbfg:
     image: postgres:13
     volumes:
-      - pg_data_production:/var/lib/postgresql/data
+      - pg_data_fg:/var/lib/postgresql/data
     env_file:
       - ./.env
 
   backend:
-    image: krispushka/foodgram_backend
+    build: ../backend
     env_file:
       - ./.env
     depends_on:
       - dbfg
     volumes:
-      - static_volume:/backend_static
-      - media_production:/app/media/recipes/images/
+      - static_fg:/backend_static
+      - media_foodgram:/app/media/recipes/images/
   frontend:
-    image: krispushka/foodgram_frontend
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
     command: cp -r /app/build/. /frontend_static/
     volumes:
-      - static_volume:/frontend_static
+      - static_fg:/frontend_static
     depends_on:
       - backend
   nginx:
@@ -38,5 +40,5 @@ services:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
       - ../frontend/build:/usr/share/nginx/html/
       - ../docs/:/usr/share/nginx/html/api/docs/
-      - static_volume:/staticfiles/
-      - media_production:/media/recipes/images/
+      - static_fg:/staticfiles/
+      - media_foodgram:/media/recipes/images/
