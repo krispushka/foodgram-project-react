@@ -106,14 +106,14 @@ class RecipeViewSet(GetObjectMixin, viewsets.ModelViewSet):
         user = self.request.user
         queryset = (
             Recipe.objects
-            .select_related('author')
-            .prefetch_related('tags')
+            .select_related("author")
+            .prefetch_related("tags")
         )
         if user.is_authenticated:
             favorite = Favorite.objects.filter(
-                user=user, recipe=OuterRef('id'))
+                user=user, recipe=OuterRef("id"))
             is_in_shopping_cart = ShoppingCard.objects.filter(
-                user=user, recipe=OuterRef('id')
+                user=user, recipe=OuterRef("id")
             )
             queryset = queryset.annotate(
                 is_favorited=Exists(favorite),
@@ -159,5 +159,5 @@ class RecipeViewSet(GetObjectMixin, viewsets.ModelViewSet):
         return FileResponse(
             get_shopping_list(user=user),
             as_attachment=True,
-            filename='shop_list.txt'
+            filename="shop_list.txt"
         )
