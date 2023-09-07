@@ -90,10 +90,10 @@ class TagViewSet(viewsets.ModelViewSet):
 class IngredientViewSet(viewsets.ModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = TagSerializer
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ("^name",)
     permission_classes = (IsAuthenticatedOrReadOnly,)
     pagination_class = None
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ("^name",)
 
 
 class RecipeViewSet(GetObjectMixin, viewsets.ModelViewSet):

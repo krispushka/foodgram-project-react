@@ -156,6 +156,21 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             "cooking_time",
         )
 
+    def validate_ingredients(self, ingredients):
+        ingredients_list = [ingredient['id'] for ingredient in ingredients]
+        if len(ingredients_list) != len(set(ingredients_list)):
+            raise ValueError(
+                'Ингредиенты не должны повторяться'
+            )
+        return ingredients
+
+    def validate_cooking_time(self, time):
+        if time < 1:
+            raise ValueError(
+                'Убедитесь, что значение времени приготовления больше 0'
+            )
+        return time
+
     @transaction.atomic
     def create(self, validated_data):
         request = self.context.get("request")

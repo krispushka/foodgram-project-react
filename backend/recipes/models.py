@@ -87,6 +87,10 @@ class Recipe(models.Model):
         verbose_name="Тэги",
         blank=True,
     )
+    pub_date = models.DateTimeField(
+        'Дата публикации',
+        auto_now_add=True,
+    )
     cooking_time = models.PositiveSmallIntegerField(
         verbose_name="Время приготовления",
         validators=[
@@ -101,6 +105,7 @@ class Recipe(models.Model):
     class Meta:
         verbose_name = "Рецепт"
         verbose_name_plural = "Рецепты"
+        ordering = ('-pub_date',)
 
 
 class IngredientRecipe(models.Model):
