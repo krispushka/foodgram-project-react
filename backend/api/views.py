@@ -93,7 +93,7 @@ class IngredientViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,)
     pagination_class = None
     filter_backends = (filters.SearchFilter,)
-    search_fields = ("^name",)
+    search_fields = ("^name", "name")
 
 
 class RecipeViewSet(GetObjectMixin, viewsets.ModelViewSet):
