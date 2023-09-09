@@ -102,6 +102,7 @@ class IngredientViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(name__istartswith=name)
         return queryset
 
+
 class RecipeViewSet(GetObjectMixin, viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
