@@ -159,14 +159,14 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     def validate_ingredients(self, ingredients):
         ingredients_list = [ingredient['id'] for ingredient in ingredients]
         if len(ingredients_list) != len(set(ingredients_list)):
-            raise ValueError(
+            raise ValidationError(
                 'Ингредиенты не должны повторяться'
             )
         return ingredients
 
     def validate_cooking_time(self, time):
         if time < 1:
-            raise ValueError(
+            raise ValidationError(
                 'Убедитесь, что значение времени приготовления больше 0'
             )
         return time
@@ -179,7 +179,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         tags = validated_data.pop("tags")
         recipe = Recipe.objects.create(author=author, **validated_data)
         for ingredient in ingredients:
-            IngredientRecipe.objects.create(
+            IngredientRecipe.objects.bulk_create(
                 recipe=recipe,
                 ingredient=get_object_or_404(Ingredient, id=ingredient["id"]),
                 amount=ingredient["amount"],
@@ -193,7 +193,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         tags = validated_data.pop("tags")
         IngredientRecipe.objects.filter(recipe=recipe).delete()
         for ingredient in ingredients:
-            IngredientRecipe.objects.create(
+            IngredientRecipe.objects.bulk_create(
                 recipe=recipe,
                 ingredient=get_object_or_404(Ingredient, id=ingredient["id"]),
                 amount=ingredient["amount"],

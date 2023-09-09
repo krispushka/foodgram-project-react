@@ -93,8 +93,14 @@ class IngredientViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,)
     pagination_class = None
     filter_backends = (filters.SearchFilter,)
-    search_fields = ("^name", "name")
+    search_fields = ["name"]
 
+    def get_queryset(self):
+        queryset = self.queryset
+        name = self.request.query_params.get("name", None)
+        if name is not None:
+            queryset = queryset.filter(name__istartswith=name)
+        return queryset
 
 class RecipeViewSet(GetObjectMixin, viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
