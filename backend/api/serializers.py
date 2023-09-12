@@ -1,5 +1,5 @@
 from django.db import transaction
-from django.forms import ValidationError
+from rest_framework.serializers import ValidationError
 from django.shortcuts import get_object_or_404
 from djoser.serializers import (
     UserCreateSerializer as DjoserUserCreateSerializer)
@@ -178,12 +178,15 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         ingredients = validated_data.pop("ingredients")
         tags = validated_data.pop("tags")
         recipe = Recipe.objects.create(author=author, **validated_data)
+        ingredients_list = []
         for ingredient in ingredients:
-            IngredientRecipe.objects.bulk_create(
-                recipe=recipe,
-                ingredient=get_object_or_404(Ingredient, id=ingredient["id"]),
-                amount=ingredient["amount"],
-            )
+            ingredients_list.append(
+                IngredientRecipe(
+                    recipe=recipe,
+                    ingredient=get_object_or_404(Ingredient, id=ingredient["id"]),
+                    amount=ingredient["amount"],
+                ))
+        IngredientRecipe.objects.bulk_create(ingredients_list)
         recipe.tags.set(tags)
         return recipe
 
@@ -192,12 +195,15 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         ingredients = validated_data.pop("ingredients")
         tags = validated_data.pop("tags")
         IngredientRecipe.objects.filter(recipe=recipe).delete()
+        ingredients_list = []
         for ingredient in ingredients:
-            IngredientRecipe.objects.bulk_create(
-                recipe=recipe,
-                ingredient=get_object_or_404(Ingredient, id=ingredient["id"]),
-                amount=ingredient["amount"],
-            )
+            ingredients_list.append(
+                IngredientRecipe(
+                    recipe=recipe,
+                    ingredient=get_object_or_404(Ingredient, id=ingredient["id"]),
+                    amount=ingredient["amount"],
+            ))
+        IngredientRecipe.objects.bulk_create(ingredients_list)
         recipe.tags.set(tags)
         return super().update(recipe, validated_data)
 
