@@ -208,7 +208,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
                         id=ingredient["id"]
                     ),
                     amount=ingredient["amount"],
-            ))
+                ))
         IngredientRecipe.objects.bulk_create(ingredients_list)
         recipe.tags.set(tags)
         return super().update(recipe, validated_data)
