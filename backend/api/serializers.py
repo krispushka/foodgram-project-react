@@ -183,7 +183,10 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             ingredients_list.append(
                 IngredientRecipe(
                     recipe=recipe,
-                    ingredient=get_object_or_404(Ingredient, id=ingredient["id"]),
+                    ingredient=get_object_or_404(
+                        Ingredient,
+                        id=ingredient["id"]
+                    ),
                     amount=ingredient["amount"],
                 ))
         IngredientRecipe.objects.bulk_create(ingredients_list)
@@ -200,7 +203,10 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             ingredients_list.append(
                 IngredientRecipe(
                     recipe=recipe,
-                    ingredient=get_object_or_404(Ingredient, id=ingredient["id"]),
+                    ingredient=get_object_or_404(
+                        Ingredient,
+                        id=ingredient["id"]
+                    ),
                     amount=ingredient["amount"],
             ))
         IngredientRecipe.objects.bulk_create(ingredients_list)
